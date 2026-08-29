@@ -128,10 +128,20 @@ void PublishLaserScanIfApplicable(
     scan.set_vertical_angle_max(0.0);
     scan.set_vertical_angle_step(0.0);
     scan.set_vertical_count(1);
+    // ros_gz_bridge's convert_gz_to_ros<LaserScan> segfaults if
+    // intensities isn't populated to the same length as ranges -- it
+    // assumes both arrays match (the convention every gz-sim built-in
+    // lidar/gpu_lidar sensor already follows), and reads intensities
+    // out of bounds when it's left empty. This sensor doesn't compute a
+    // real intensity value, so fill with 0.0 -- correctness-wise a no-op,
+    // but required for the bridge not to crash. Confirmed via a gdb
+    // backtrace into libros_gz_bridge.so's LaserScan converter.
     scan.mutable_ranges()->Reserve(static_cast<int>(ranges.size()));
+    scan.mutable_intensities()->Reserve(static_cast<int>(ranges.size()));
     for(size_t i = 0; i < ranges.size(); ++i)
     {
       scan.add_ranges(static_cast<double>(ranges[i]));
+      scan.add_intensities(0.0);
     }
     // Publish() isn't const on gz::transport::Node::Publisher -- scan_pubs
     // must be a non-const reference (see this function's signature).
