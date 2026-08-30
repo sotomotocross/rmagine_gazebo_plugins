@@ -134,6 +134,18 @@ void RmagineOptixSensorInstance::RefreshSimulator()
     sim_o1dn_.reset();
     sim_ondn_.reset();
     map_revision_ = revision;
+    // Proactively activate the map's CUDA context here rather than letting
+    // the first simulate() call do it lazily -- root-caused (in
+    // radarays_gazebo_plugins's own OptiX sensor system, same underlying
+    // map/context, same symptom) via a standalone repro outside gz-sim
+    // entirely: the first simulate() call finding the context not yet
+    // active ("Need to activate map context") reliably hangs/segfaults on
+    // the next device-to-host copy in this environment. Activating up
+    // front sidesteps whatever in that lazy-activation path is unsafe
+    // here -- confirmed this is what was causing optix_fixture_dynamic/
+    // optix_fixture_multi/embree_fixture_zombie to time out waiting for
+    // /scan+/points on this runner.
+    map_->context()->getCudaContext()->use();
     std::cerr << "[RmagineOptixSensorInstance] Refreshed simulator for map key '"
               << map_key_ << "' at revision " << map_revision_ << "." << std::endl;
   }
