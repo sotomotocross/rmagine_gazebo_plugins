@@ -4,28 +4,17 @@
   <version>0.0.0</version>
   <description>The rmagine_gazebo_plugins package</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="amock@uos.de">Alexander Mock</maintainer>
+  <!-- Independent ROS 2 Jazzy / Gazebo Harmonic continuation, not affiliated
+       with the original maintainer above. See README.md's "Origin" section. -->
+  <maintainer email="s.aspragkathos@gmail.com">Sotiris Aspragkathos</maintainer>
 
+  <license>BSD-3-Clause</license>
 
-  <!-- One license tag required, multiple allowed, one license per tag -->
-  <!-- Commonly used license strings: -->
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
+  <url type="repository">https://github.com/sotomotocross/rmagine_gazebo_plugins</url>
 
-
-  <!-- Url tags are optional, but multiple are allowed, one per tag -->
-  <!-- Optional attribute type can be: website, bugtracker, or repository -->
-  <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/gazebo_rmagine_plugin</url> -->
-
-
-  <!-- Author tags are optional, multiple are allowed, one per tag -->
-  <!-- Authors do not have to be maintainers, but could be -->
-  <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+  <author email="amock@uos.de">Alexander Mock</author>
+  <author email="s.aspragkathos@gmail.com">Sotiris Aspragkathos</author>
 
 
   <!-- The *depend tags are used to specify dependencies -->

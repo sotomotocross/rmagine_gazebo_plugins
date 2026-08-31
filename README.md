@@ -16,6 +16,18 @@ rmagine_gazebo_plugins
 
 <br/>
 
+## Origin
+
+This is an independent ROS 2 Jazzy / Gazebo Harmonic continuation of
+[uos/rmagine_gazebo_plugins](https://github.com/uos/rmagine_gazebo_plugins),
+originally authored by the Osnabrück University Knowledge Based Systems
+Group (Alexander Mock). The ROS 2 Jazzy / Gazebo Harmonic port and
+subsequent fixes here are by
+[Sotiris Aspragkathos](https://github.com/sotomotocross), not affiliated
+with the original authors. See [MIGRATION_HANDOFF.md](https://github.com/sotomotocross/radarays_ros/blob/main/MIGRATION_HANDOFF.md)
+(in the `radarays_ros` repo) for the full story of why this continues here
+independently rather than as an open pull request.
+
 Range sensor plugins for Gazebo, built on the ray tracing sensor simulation library [rmagine](https://github.com/uos/rmagine). With rmagine's OptiX or Vulkan backends you can simulate depth sensor data directly on a GPU (OptiX requires an RTX card and CUDA; Vulkan runs on any Vulkan-ray-tracing-capable GPU); with the Embree backend you can simulate any provided sensor on the CPU. All backends build an acceleration structure over the scene once and refit it in place as objects move, so simulating dense depth sensors stays fast even in large Gazebo worlds.
 
 Conceptually, two kinds of plugins work together, one pair per backend (Embree/CPU, OptiX/GPU, Vulkan/GPU):
