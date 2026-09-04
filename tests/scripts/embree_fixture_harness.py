@@ -669,7 +669,21 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     parser.add_argument("--output", type=Path, help="Output path for capture JSON")
     parser.add_argument("--result", type=Path, help="Result JSON to compare")
     parser.add_argument("--duration", type=float, help="Capture duration in seconds")
-    parser.add_argument("--timeout", type=float, default=20.0, help="Timeout waiting for the first scan and point cloud")
+    # Was 20.0. Root-caused via a real gdb-free investigation: repeated CI
+    # (and local) failures always showed "Timed out waiting for /scan and
+    # /points" with an execution time matching this timeout almost exactly
+    # (~20-21s at the old 20.0 default, ~40-41s when first bumped to 40.0)
+    # -- never a resource ceiling (VRAM measured live during an actual
+    # failing CI run: peak 617/4094 MiB, nowhere near exhaustion; CPU-app
+    # contention was independently ruled out too). A different, effectively
+    # random fixture failed each run, consistent with real cold-start
+    # variance (gz sim + Ogre2 rendering + rmagine's scene build) sometimes
+    # exceeding a tight fixed budget under sustained back-to-back fixture
+    # runs on this hardware, not a logic bug in any specific fixture. 60.0
+    # still leaves comfortable headroom under every CMakeLists.txt TIMEOUT
+    # (120-180s; the tightest, 60s, is only used by a non-Gazebo-sim test).
+    # No call site overrides --timeout, so this default applies everywhere.
+    parser.add_argument("--timeout", type=float, default=60.0, help="Timeout waiting for the first scan and point cloud")
     return parser.parse_args(argv[1:])
 
 

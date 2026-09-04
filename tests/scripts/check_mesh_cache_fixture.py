@@ -128,7 +128,13 @@ def main() -> int:
         return text.count(f"Loading mesh from '{mesh_path}' (cache miss).")
 
     try:
-        deadline = time.monotonic() + 20.0
+        # Was 20.0 -- same root cause as embree_fixture_harness.py's
+        # --timeout (see its comment): real gz sim + Ogre2 cold-start
+        # variance on this hardware occasionally exceeds a tight fixed
+        # wait, unrelated to any resource ceiling. 40.0 + the 6.0s late
+        # window below still leaves ~14s of headroom under this fixture's
+        # 60s CMake TIMEOUT (the tightest of all fixtures' budgets).
+        deadline = time.monotonic() + 40.0
         while time.monotonic() < deadline:
             if process.poll() is not None:
                 print(f"gz sim exited early with code {process.returncode}. See {log_path}", file=sys.stderr)
