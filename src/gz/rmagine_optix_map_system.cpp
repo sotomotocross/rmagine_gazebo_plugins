@@ -914,6 +914,38 @@ void RmagineOptixMapSystem::ParseParams(const std::shared_ptr<const sdf::Element
   }
 }
 
+namespace
+{
+// See rmagine_embree_map_system.cpp's matching helper for the full
+// rationale -- same fix, kept consistent across both backends even
+// though water is currently fully excluded from the OptiX map anyway
+// (a separate, unrelated CUDA crash, see ocean_world.sdf's own comment)
+// so this generalizes correctly whenever that gets resolved too.
+bool MatchesIgnorePattern(const std::string &name, const std::string &pattern)
+{
+  if(!pattern.empty() && pattern.back() == '*')
+  {
+    const std::string prefix = pattern.substr(0, pattern.size() - 1);
+    return name.compare(0, prefix.size(), prefix) == 0;
+  }
+  return name == pattern;
+}
+
+bool MatchesAnyIgnorePattern(
+  const std::string &name,
+  const std::unordered_set<std::string> &patterns)
+{
+  for(const auto &pattern : patterns)
+  {
+    if(MatchesIgnorePattern(name, pattern))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+}  // namespace
+
 bool RmagineOptixMapSystem::IsIgnoredVisual(
   gz::sim::Entity entity,
   const gz::sim::EntityComponentManager &_ecm) const
@@ -934,14 +966,14 @@ bool RmagineOptixMapSystem::IsIgnoredVisual(
     {
       if(auto nameComp = _ecm.Component<gz::sim::components::Name>(current))
       {
-        if(ignored_model_names_.count(nameComp->Data()) > 0)
+        if(MatchesAnyIgnorePattern(nameComp->Data(), ignored_model_names_))
         {
           return true;
         }
         if(!link_name.empty() && !ignored_link_names_.empty())
         {
           const std::string combined = nameComp->Data() + "::" + link_name;
-          if(ignored_link_names_.count(combined) > 0)
+          if(MatchesAnyIgnorePattern(combined, ignored_link_names_))
           {
             return true;
           }
