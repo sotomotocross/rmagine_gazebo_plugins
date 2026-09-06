@@ -960,6 +960,45 @@ void RmagineEmbreeMapSystem::ParseParams(const std::shared_ptr<const sdf::Elemen
   }
 }
 
+namespace
+{
+// Exact match, or a trailing '*' prefix match (e.g. "water_area-*" matches
+// "water_area-4000.00-0.00"). Real need, not speculative: a world that
+// dynamically spawns terrain/water chunks by position-derived name (e.g.
+// crete_chunk_spawner.py's "water_area-<x>-<y>") can never enumerate every
+// future instance ahead of time in a static SDF `ignore_model` list --
+// confirmed the hard way, teleporting a vessel far enough spawned a chunk
+// whose name the existing exact-match list didn't cover, silently
+// reintroducing full clutter. gz-sim's own ECS doesn't preserve arbitrary
+// custom SDF tags for a plugin loaded on a different entity to query later
+// (see ignored_link_names_'s own comment on why that rules out true
+// Classic-style self-tagging as an alternative fix here), so a pattern
+// match on the externally-configured list is the actually tractable fix.
+bool MatchesIgnorePattern(const std::string &name, const std::string &pattern)
+{
+  if(!pattern.empty() && pattern.back() == '*')
+  {
+    const std::string prefix = pattern.substr(0, pattern.size() - 1);
+    return name.compare(0, prefix.size(), prefix) == 0;
+  }
+  return name == pattern;
+}
+
+bool MatchesAnyIgnorePattern(
+  const std::string &name,
+  const std::unordered_set<std::string> &patterns)
+{
+  for(const auto &pattern : patterns)
+  {
+    if(MatchesIgnorePattern(name, pattern))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+}  // namespace
+
 bool RmagineEmbreeMapSystem::IsIgnoredVisual(
   gz::sim::Entity entity,
   const gz::sim::EntityComponentManager &_ecm) const
@@ -980,14 +1019,14 @@ bool RmagineEmbreeMapSystem::IsIgnoredVisual(
     {
       if(auto nameComp = _ecm.Component<gz::sim::components::Name>(current))
       {
-        if(ignored_model_names_.count(nameComp->Data()) > 0)
+        if(MatchesAnyIgnorePattern(nameComp->Data(), ignored_model_names_))
         {
           return true;
         }
         if(!link_name.empty() && !ignored_link_names_.empty())
         {
           const std::string combined = nameComp->Data() + "::" + link_name;
-          if(ignored_link_names_.count(combined) > 0)
+          if(MatchesAnyIgnorePattern(combined, ignored_link_names_))
           {
             return true;
           }
